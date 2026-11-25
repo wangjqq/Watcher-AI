@@ -13,7 +13,7 @@
 #   - 构建完成后若未检测到设备串口，会持续自动重试（每 3 秒）直至超时，Ctrl+C 可随时中止
 
 param(
-    [string]$Port = "COM5",     # 串口，如 COM5；缺省自动检测
+    [string]$Port = "COM4",     # 串口，如 COM5；缺省自动检测
     [switch]$NoFlash,       # 只构建，跳过烧录与监控
     [int]$WaitTimeout = 60, # 设备未连接时自动重试检测的秒数（-1 = 无限等待）
     [int]$BaudRate = 460800 # 烧录波特率（ESP32-S3 原生 USB-Serial-JTAG 不稳定时建议降到 115200）

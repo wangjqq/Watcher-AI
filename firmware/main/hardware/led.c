@@ -17,7 +17,7 @@ static const char *TAG = "led";
 #define LED_GPIO_G GPIO_NUM_21
 #define LED_GPIO_B GPIO_NUM_42   /* 原 GPIO22 在 S3 上不存在，已改至 GPIO42 */
 
-#define LED_ACTIVE_HIGH 1
+#define LED_ACTIVE_HIGH 0
 
 #define LED_CH_R LEDC_CHANNEL_1
 #define LED_CH_G LEDC_CHANNEL_2

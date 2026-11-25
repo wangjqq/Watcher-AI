@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "knob.h"
+#include "button.h"
 #include "touch.h"
 
 /* ------------------------------------------------------------------
@@ -28,9 +28,8 @@ void wifi_ui_exit(void);
 /* 主循环每 ~100ms 调用：轮询扫描完成与连接结果 */
 void wifi_ui_tick(void);
 
-/* 旋钮输入：LEFT/RIGHT 移动光标、OK 确认、BACK 返回。
- * 密码页内：LEFT=退格、RIGHT=字母/符号页切换、OK=连接、BACK=返回列表 */
-void wifi_ui_knob(knob_event_t ev);
+/* 按键输入：长按返回列表视图（短按无操作，WiFi 页以触摸为主） */
+void wifi_ui_button(button_event_t ev);
 
 /* 触摸输入（屏幕坐标，含状态栏区；本页自行过滤状态栏区） */
 void wifi_ui_touch(const touch_event_t *ev);
@@ -41,6 +40,6 @@ void wifi_ui_draw(void);
 /* 是否有待重绘（扫描完成 / 连接状态变化 / 输入操作时置位） */
 bool wifi_ui_need_redraw(void);
 
-/* 用户请求退出本页（knob BACK / 边缘返回 / 页面内返回键）。
+/* 用户请求退出本页（长按返回 / 边缘返回 / 页面内返回键）。
  * 主循环检测到后调用 wifi_ui_exit() 并切回系统菜单。 */
 bool wifi_ui_exit_requested(void);

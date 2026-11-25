@@ -25,7 +25,7 @@
 #include "font_zh.h"
 #include "http_server.h"
 #include "indicator.h"
-#include "knob.h"
+#include "button.h"
 #include "layout_renderer.h"
 #include "led.h"
 #include "light_sensor.h"
@@ -96,10 +96,10 @@ static uint32_t s_last_batt_ms = 0;        /* 上次电量采样时间戳 */
 
 /* ---- 深度睡眠（固定时段 + RTC 定时 / 旋钮唤醒） ----
  * 在配置的「入睡 → 唤醒」时间段内、且无操作（屏幕休眠）后，整机进入深度睡眠（<1mA）。
- * 唤醒源：RTC 定时器（到点自动醒）+ 旋钮按下 GPIO7（任意时刻手动醒，兼作确认键）。
+ * 唤醒源：RTC 定时器（到点自动醒）+ 按键按下 GPIO7（任意时刻手动醒，兼作确认键）。
  * 唤醒后重新走 app_main，联网 SNTP 校时后继续正常盯盘。 */
 #define DS_IDLE_FALLBACK_S  300  /* 屏幕休眠关闭时，深度睡眠至少要求的无操作秒数 */
-#define DS_WAKE_GPIO        7    /* 旋钮 SW（按下=低电平），与 knob.c 的 KNOB_GPIO_SW 一致 */
+#define DS_WAKE_GPIO        7    /* 按键（按下=低电平），与 button.c 的 BUTTON_GPIO 一致 */
 
 /* ---- 省电模式 / 低电量保护 ----
  * 省电模式 = 背光最低 + CPU 降频：网页「设备设置」手动开关 OR 电量 <20% 自动进入；
@@ -383,19 +383,11 @@ static void apply_brightness_hw(void)
     display_set_brightness(effective_brightness());
 }
 
-/* --- 应用列表菜单：旋转移动光标，OK 打开，BACK 无操作 --- */
-static void on_menu_input(knob_event_t ev)
+/* --- 应用列表菜单：触摸左右滑移动光标，短按确认进入，长按返回（无操作） --- */
+static void on_menu_input(button_event_t ev)
 {
     switch (ev) {
-    case KNOB_EV_LEFT:
-        s_cursor = (s_cursor + s_menu_count - 1) % s_menu_count;
-        key_feedback();
-        break;
-    case KNOB_EV_RIGHT:
-        s_cursor = (s_cursor + 1) % s_menu_count;
-        key_feedback();
-        break;
-    case KNOB_EV_OK:
+    case BUTTON_EV_SHORT:
         if (s_cursor == s_menu_count - 1) {
             s_ui = UI_SYSTEM; /* 末尾固定为「系统」应用 */
             s_sys = SYS_VIEW_MENU;
@@ -406,41 +398,29 @@ static void on_menu_input(knob_event_t ev)
         }
         key_feedback();
         break;
-    case KNOB_EV_BACK:
+    case BUTTON_EV_LONG:
     default:
-        break; /* 列表页返回无操作 */
+        break; /* 列表页长按无操作 */
     }
 }
 
-/* --- 应用内：旋转交给应用自身功能（股票应用暂无旋钮能力），BACK 回列表 --- */
-static void on_app_input(knob_event_t ev)
+/* --- 应用内：长按回列表 --- */
+static void on_app_input(button_event_t ev)
 {
-    switch (ev) {
-    case KNOB_EV_BACK:
+    if (ev == BUTTON_EV_LONG) {
         s_ui = UI_MENU;
         s_cursor = s_current_app; /* 回到列表并停在刚打开的应用上 */
         key_feedback();
-        break;
-    default:
-        break;
     }
 }
 
-/* --- 系统应用：亮度 / 手动刷新 / 状态 --- */
-static void on_system_input(knob_event_t ev)
+/* --- 系统应用：短按确认/选择，长按返回 --- */
+static void on_system_input(button_event_t ev)
 {
     switch (s_sys) {
     case SYS_VIEW_MENU:
         switch (ev) {
-        case KNOB_EV_LEFT:
-            s_sys_cursor = (s_sys_cursor + SYS_ITEM_COUNT - 1) % SYS_ITEM_COUNT;
-            key_feedback();
-            break;
-        case KNOB_EV_RIGHT:
-            s_sys_cursor = (s_sys_cursor + 1) % SYS_ITEM_COUNT;
-            key_feedback();
-            break;
-        case KNOB_EV_OK:
+        case BUTTON_EV_SHORT:
             if (s_sys_cursor == 0) {
                 s_sys = SYS_VIEW_BRIGHT;
             } else if (s_sys_cursor == 1) {
@@ -462,7 +442,7 @@ static void on_system_input(knob_event_t ev)
             }
             key_feedback();
             break;
-        case KNOB_EV_BACK:
+        case BUTTON_EV_LONG:
             s_ui = UI_MENU;
             s_cursor = s_menu_count - 1; /* 回列表并停在「系统」 */
             key_feedback();
@@ -474,18 +454,8 @@ static void on_system_input(knob_event_t ev)
 
     case SYS_VIEW_BRIGHT:
         switch (ev) {
-        case KNOB_EV_LEFT:
-            s_brightness = (s_brightness >= 5) ? (uint8_t)(s_brightness - 5) : 0;
-            apply_brightness();
-            key_feedback();
-            break;
-        case KNOB_EV_RIGHT:
-            s_brightness = (s_brightness > 95) ? 100 : (uint8_t)(s_brightness + 5);
-            apply_brightness();
-            key_feedback();
-            break;
-        case KNOB_EV_OK:
-        case KNOB_EV_BACK:
+        case BUTTON_EV_SHORT:
+        case BUTTON_EV_LONG:
             s_sys = SYS_VIEW_MENU;
             key_feedback();
             break;
@@ -495,65 +465,36 @@ static void on_system_input(knob_event_t ev)
         break;
 
     case SYS_VIEW_STATUS:
-        switch (ev) {
-        case KNOB_EV_OK:
-        case KNOB_EV_BACK:
+        if (ev == BUTTON_EV_SHORT || ev == BUTTON_EV_LONG) {
             s_sys = SYS_VIEW_MENU;
             key_feedback();
-            break;
-        default:
-            break;
         }
         break;
 
     case SYS_VIEW_QR:
-        /* 二维码页：OK / BACK 返回系统菜单 */
-        switch (ev) {
-        case KNOB_EV_OK:
-        case KNOB_EV_BACK:
+        /* 二维码页：短按/长按返回系统菜单 */
+        if (ev == BUTTON_EV_SHORT || ev == BUTTON_EV_LONG) {
             s_sys = SYS_VIEW_MENU;
             key_feedback();
-            break;
-        default:
-            break;
         }
         break;
 
     case SYS_VIEW_WIFI:
-        /* WiFi 页内旋钮（移动光标/确认/返回）由页面自己处理 */
-        wifi_ui_knob(ev);
+        /* WiFi 页内操作由页面自己处理 */
         break;
 
     case SYS_VIEW_CAL:
-        switch (ev) {
-        case KNOB_EV_OK:
-        case KNOB_EV_BACK:
+        if (ev == BUTTON_EV_SHORT || ev == BUTTON_EV_LONG) {
             s_sys = SYS_VIEW_MENU;
             key_feedback();
-            break;
-        default:
-            break;
         }
         break;
 
     case SYS_VIEW_MANUAL:
-        /* 用户手册：旋转翻页，OK / BACK 返回系统菜单 */
-        switch (ev) {
-        case KNOB_EV_LEFT:
-            s_manual_page = (s_manual_page + MANUAL_PAGES - 1) % MANUAL_PAGES;
-            key_feedback();
-            break;
-        case KNOB_EV_RIGHT:
-            s_manual_page = (s_manual_page + 1) % MANUAL_PAGES;
-            key_feedback();
-            break;
-        case KNOB_EV_OK:
-        case KNOB_EV_BACK:
+        /* 用户手册：短按/长按返回系统菜单 */
+        if (ev == BUTTON_EV_SHORT || ev == BUTTON_EV_LONG) {
             s_sys = SYS_VIEW_MENU;
             key_feedback();
-            break;
-        default:
-            break;
         }
         break;
 
@@ -561,9 +502,8 @@ static void on_system_input(knob_event_t ev)
         break;
     }
 }
-
-/* 统一输入入口：按当前界面状态分发 */
-static void on_input(knob_event_t ev)
+/* --- 统一输入入口：按当前界面状态分发 --- */
+static void on_input(button_event_t ev)
 {
     /* 任何输入都视为活动：重置休眠计时；休眠中被唤醒 */
     s_last_activity_ms = (uint32_t)(esp_timer_get_time() / 1000);
@@ -825,7 +765,7 @@ void app_main(void)
     s_force_redraw = true; /* 首次循环立即绘制画布 */
 
     display_init(cfg.brightness);
-    knob_init();
+    button_init();
     buzzer_init();
     led_init();
     indicator_init();
@@ -845,7 +785,7 @@ void app_main(void)
     }
 
     /* 输入统一走这里：按当前界面状态（菜单 / 应用 / 系统）分发 */
-    knob_set_handler(on_input);
+    button_set_handler(on_input);
     touch_set_handler(on_touch_ev);
 
     uint32_t last_status_ms = 0;

@@ -29,7 +29,7 @@ idf_component_register(
         "display/wifi_ui.c"
         "display/layout_renderer.c"
         "display/status_bar.c"
-        "hardware/knob.c"
+        "hardware/button.c"
         "hardware/buzzer.c"
         "hardware/led.c"
         "hardware/indicator.c"

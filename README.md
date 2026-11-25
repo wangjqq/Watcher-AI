@@ -42,9 +42,9 @@ Stock-Watcher-AI/
 │       │   └── layout_renderer.c/.h # 按配置把数据渲染到画布
 │       ├── hardware/          # 输入输出硬件
 │       │   ├── touch.c/.h         # XPT2046 电阻触摸（两点标定 + 点按/滑动/边缘返回手势）
-│       │   ├── knob.c/.h          # 旋钮导航 + 返回键（正交解码 + 消抖）
+│       │   ├── button.c/.h        # 单按键（短按确认/长按返回）
 │       │   ├── buzzer.c/.h        # 无源蜂鸣器（PWM）
-│       │   ├── led.c/.h           # RGB LED（三引脚）
+│       │   ├── led.c/.h           # RGB LED（三引脚，共阳）
 │       │   ├── indicator.c/.h     # 状态灯逻辑（按网络/涨跌变色）
 │       │   ├── battery.c/.h       # 电池电量（ADC 分压采样 + 平滑滤波）
 │       │   ├── light_sensor.c/.h  # 光敏 BH1750（I2C 读光照度 → 自动亮度）
@@ -172,15 +172,15 @@ idf.py -p COMx write_partition --partition-name fonts --partition-offset 0xC1300
 
 ## 第二阶段：升级规划（P0 → P2 全量排期）
 
-> 新增硬件：**带按键旋钮（EC11 / E8H6）+ 返回键** + 无源蜂鸣器 + RGB LED（三引脚）+ **光敏 BH1750 + 电池电量 ADC**。接线最终同步到 [PINMAP.md](firmware/PINMAP.md)。
-> **交互模型**：一个页面 = 一个应用，前端配置「应用列表」；**旋钮旋转 = 导航、旋钮按下 = 确认、独立返回键 = 返回**。
-> 新模块统一放 `firmware/main/hardware/`（knob / buzzer / led / battery / light_sensor）。
+> 新增硬件：**单按键（短按确认/长按返回）** + 无源蜂鸣器 + RGB LED（三引脚，共阳）+ **光敏 BH1750 + 电池电量 ADC**。接线最终同步到 [PINMAP.md](firmware/PINMAP.md)。
+> **交互模型**：一个页面 = 一个应用，前端配置「应用列表」；**短按 = 确认/选择，长按（>1秒） = 返回**，菜单导航由触摸滑动实现。
+> 新模块统一放 `firmware/main/hardware/`（button / buzzer / led / battery / light_sensor）。
 
 ### 硬件（五件套）
 
-- [x] 旋钮导航 + 返回键
-  - [x] 接线：旋钮 A=GPIO25 / B=GPIO6 / SW=GPIO7（按下确认），返回键=GPIO14（内部上拉 + 软件消抖 + 正交解码；避开 S3 N16R8 的 PSRAM 占用引脚 26~37）
-  - [x] `knob` 模块：旋转解码（EC11 / E8H6 原理相同）/ 按下确认 / 返回键事件
+- [x] 单按键（短按确认/长按返回）
+  - [x] 接线：GPIO7（按下=低电平，内部上拉 + 软件消抖；避开 S3 N16R8 的 PSRAM 占用引脚 26~37）
+  - [x] `button` 模块：短按事件 / 长按（>1秒）事件
   - [x] 更新 PINMAP.md 接线图
 - [x] 无源蜂鸣器（PWM）
   - [x] 接线：GPIO 13（LEDC）

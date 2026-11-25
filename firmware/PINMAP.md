@@ -88,30 +88,22 @@ T_IRQ  → GPIO15
 > 「系统 → WiFi」页整页为触摸操作：点列表行选择网络 / 点软键盘键输入密码，边缘向内滑返回
 > （配网无 AP 模式，需在设备上手动选择网络并输密码）。
 
-## 旋钮导航 + 返回键
+## 单按键
 
-输入设备：EC11 / E8H6 等**带按键旋钮**（旋转 = 导航、按下 = 确认）+ 独立返回键。
-旋钮引脚：`A  B  C(公共)  SW(按下开关)`，内部上拉；A/B 正交解码，SW 与返回键按下为低电平，软件消抖。
-若旋转方向与预期相反，把 `knob.c` 顶部 `KNOB_REVERSE` 改为 1。
+输入设备：普通按键（iPhone 4 风格），按下为低电平，内部上拉，软件消抖。
+短按 = 确认/选择，长按（>1秒） = 返回。
 
-> **深度睡眠唤醒**：SW（GPIO7）处于 RTC 域（GPIO0~21），同时作为深度睡眠唤醒键——
-> 整机深度睡眠后按下旋钮即可随时唤醒（同键兼作确认，见 main.c 深度睡眠逻辑，无需额外接线）。
+> **深度睡眠唤醒**：GPIO7 处于 RTC 域（GPIO0~21），同时作为深度睡眠唤醒键——
+> 整机深度睡眠后按下按键即可随时唤醒。
 
-| 信号 | 功能            | ESP32 GPIO | 定义位置                          |
-| ---- | --------------- | ---------- | --------------------------------- |
-| A    | 旋钮相位 A      | GPIO47     | `hardware/knob.c` → `KNOB_GPIO_A` |
-| B    | 旋钮相位 B      | GPIO6      | `KNOB_GPIO_B`（避开 26~37）       |
-| SW   | 旋钮按下 = 确认 | GPIO7      | `KNOB_GPIO_SW`（避开 26~37）      |
-| BACK | 返回键          | GPIO14     | `KNOB_GPIO_BACK`                  |
+| 信号 | 功能            | ESP32 GPIO | 定义位置                                          |
+| ---- | --------------- | ---------- | ------------------------------------------------- |
+| BTN  | 按键（按下=低） | GPIO7      | `hardware/button.c` → `BUTTON_GPIO`（避开 26~37） |
 
 接线速查：
 
 ```text
-旋钮 A  → GPIO47
-旋钮 B  → GPIO6
-旋钮 SW → GPIO7
-旋钮 C  → GND
-返回键   → GPIO14（另一脚 → GND）
+按键 → GPIO7（另一脚 → GND）
 ```
 
 ## 无源蜂鸣器
@@ -142,7 +134,7 @@ G → GPIO21
 B → GPIO42
 ```
 
-> 若为共阳极 LED，把 `led.c` 顶部 `LED_ACTIVE_HIGH` 改为 `0` 即可（自动反相）。
+> 当前为共阳极 LED（`LED_ACTIVE_HIGH=0`），低电平点亮。若换成共阴极，改为 `1` 即可（自动反相）。
 
 ## 光敏传感器 BH1750（I2C）
 
@@ -193,11 +185,8 @@ SCL → GPIO10
 #define TOUCH_PIN_CS   GPIO_NUM_9
 #define TOUCH_PIN_IRQ  GPIO_NUM_15
 
-/* 旋钮 + 返回键 hardware/knob.c */
-#define KNOB_GPIO_A    GPIO_NUM_47
-#define KNOB_GPIO_B    GPIO_NUM_6
-#define KNOB_GPIO_SW   GPIO_NUM_7
-#define KNOB_GPIO_BACK GPIO_NUM_14
+/* 单按键 hardware/button.c */
+#define BUTTON_GPIO     GPIO_NUM_7
 
 /* 蜂鸣器 hardware/buzzer.c */
 #define PIN_BUZZER GPIO_NUM_13

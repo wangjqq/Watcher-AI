@@ -516,62 +516,19 @@ void wifi_ui_tick(void)
     }
 }
 
-void wifi_ui_knob(knob_event_t ev)
+void wifi_ui_button(button_event_t ev)
 {
     if (!s_active) {
         return;
     }
-    switch (s_view) {
-    case WIFI_VIEW_LIST:
-        switch (ev) {
-        case KNOB_EV_LEFT:
-            move_cursor(-1);
-            break;
-        case KNOB_EV_RIGHT:
-            move_cursor(1);
-            break;
-        case KNOB_EV_OK:
-            select_current();
-            break;
-        case KNOB_EV_BACK:
+    /* WiFi 页以触摸为主，按键仅响应长按返回 */
+    if (ev == BUTTON_EV_LONG) {
+        if (s_view == WIFI_VIEW_LIST) {
             s_exit_requested = true;
-            break;
-        default:
-            break;
-        }
-        break;
-
-    case WIFI_VIEW_PASS:
-        switch (ev) {
-        case KNOB_EV_LEFT:
-            del_char();
-            break;
-        case KNOB_EV_RIGHT:
-            s_kb_symbols = !s_kb_symbols;
-            s_kb_shift = false;
-            build_cells();
-            mark_dirty();
-            break;
-        case KNOB_EV_OK:
-            kb_press(K_ACT_OK, 0);
-            break;
-        case KNOB_EV_BACK:
-            s_view = WIFI_VIEW_LIST;
-            mark_dirty();
-            break;
-        default:
-            break;
-        }
-        break;
-
-    case WIFI_VIEW_CONN:
-        if (ev == KNOB_EV_BACK || ev == KNOB_EV_OK) {
+        } else {
             s_view = WIFI_VIEW_LIST;
             mark_dirty();
         }
-        break;
-    default:
-        break;
     }
 }
 
