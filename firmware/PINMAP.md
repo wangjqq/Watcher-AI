@@ -8,11 +8,6 @@
 >
 > 开发板资料（排针引出 / 原理图 / 官方例程）：[docs/hardware/esp32s3-nano/README.md](../docs/hardware/esp32s3-nano/README.md)。
 > 本项目所用引脚均已按该开发板排针核对，全部符合。
->
-> ⚠️ **引脚调整说明（2026-09-02）**：原固件把 LCD MOSI、旋钮 A、LED B 分别定在
-> GPIO23 / GPIO25 / GPIO22，这三个引脚在 ESP32-S3 上并不存在（S3 仅有 GPIO0~21、26~48），
-> 已按 S3 安全引脚重新分配为 **GPIO48 / GPIO47 / GPIO42**。若实物接线与上述不符，请以实际
-> 接线为准，同步修改对应 `.c` 文件宏与本表。
 
 ## ⚠️ 引脚禁区（N16R8 必须避开）
 
@@ -55,40 +50,8 @@ LCD 与触摸共用一条 SPI 总线（SPI2）：**T_CLK 与 SCK 连到同一个
 | T_DO     | 触摸数据输出 | GPIO11     | 共享 MISO，`display.c` → `PIN_MISO`                        |
 | T_IRQ    | 触摸中断     | GPIO15     | `hardware/touch.c` → `TOUCH_PIN_IRQ`，按下为低（内部上拉） |
 
-接线速查（模块引脚 → ESP32）：
-
-```text
-VCC    → 3V3
-GND    → GND
-CS     → GPIO5
-RESET  → GPIO16
-DC     → GPIO17
-SDI    → GPIO48
-SCK    → GPIO18
-LED    → GPIO4
-SDO    → 悬空（可不接）
-T_CLK  → GPIO18   （与 SCK 共用）
-T_CS   → GPIO9
-T_DIN  → GPIO48   （与 SDI 共用）
-T_DO   → GPIO11   （共享 MISO）
-T_IRQ  → GPIO15
-```
-
 > 注：不同批次 ILI9341 面板颜色/方向可能不同，若偏色或反色，参考
 > `display.c` 中 `ili9341_init()` 末尾的注释（MADCTL / INVOFF 调整）。
->
-> 触控为电阻式，首次使用需在「系统 → TouchCal」里做两角标定（点左上角、右下角），
-> 标定数据保存在 NVS。若触摸方向左右颠倒，重复标定即可；若 X/Y 轴互换（少见），
-> 需在 `touch.c` 的 `raw_to_screen()` 中交换两个通道。
->
-> 触控手势（`touch.c` + `main.c` 的 `on_touch_ev`）：
->
-> - 点按：菜单/系统菜单按行选中打开；应用内点状态栏最左返回按钮（‹）回列表，其余区域切下一个应用
-> - 中部左右滑：菜单/系统菜单移动光标；应用内切换上一个/下一个应用
-> - 边缘向内滑（从屏幕最左缘向右滑，或从最右缘向左滑）= 返回上一级
->
-> 「系统 → WiFi」页整页为触摸操作：点列表行选择网络 / 点软键盘键输入密码，边缘向内滑返回
-> （配网无 AP 模式，需在设备上手动选择网络并输密码）。
 
 ## 背光驱动（三极管低边开关）
 
@@ -140,7 +103,7 @@ GPIO4 ── R8(1K) ──┬── Q3 基极(B)
 
 ## RGB LED（三引脚）
 
-三路独立 PWM 调亮度，默认**共阴极**（高电平点亮）。
+三路独立 PWM 调亮度，固件默认使用**共阳极**（低电平点亮）。
 
 | 引脚 | ESP32 GPIO | 定义位置                                      |
 | ---- | ---------- | --------------------------------------------- |
@@ -191,35 +154,4 @@ SCL → GPIO10
 
 ## 修改接线
 
-各外设的引脚定义都在自己模块的 `.c` 文件顶部宏里，改对应宏即可，不需要改其他文件：
-
-```c
-/* 屏幕 + 触摸 display/display.c + hardware/touch.c */
-#define PIN_SCLK   GPIO_NUM_18
-#define PIN_MOSI   GPIO_NUM_48
-#define PIN_MISO   GPIO_NUM_11   /* 触摸 T_DO */
-#define PIN_CS     GPIO_NUM_5
-#define PIN_DC     GPIO_NUM_17
-#define PIN_RST    GPIO_NUM_16
-#define PIN_BL     GPIO_NUM_4
-#define TOUCH_PIN_CS   GPIO_NUM_9
-#define TOUCH_PIN_IRQ  GPIO_NUM_15
-
-/* 单按键 hardware/button.c */
-#define BUTTON_GPIO     GPIO_NUM_7
-
-/* 蜂鸣器 hardware/buzzer.c */
-#define PIN_BUZZER GPIO_NUM_13
-
-/* RGB LED hardware/led.c */
-#define LED_GPIO_R GPIO_NUM_38
-#define LED_GPIO_G GPIO_NUM_21
-#define LED_GPIO_B GPIO_NUM_42
-
-/* 光敏 BH1750 hardware/light_sensor.c */
-#define PIN_SDA GPIO_NUM_8
-#define PIN_SCL GPIO_NUM_10
-
-/* 电池电量 hardware/battery.c */
-#define PIN_BATT ADC1_CHANNEL_0  /* GPIO1 */
-```
+修改外设接线后，同步更新对应固件模块的引脚宏和本页的接线表。
