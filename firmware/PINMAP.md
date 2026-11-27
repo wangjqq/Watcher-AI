@@ -1,6 +1,8 @@
 # 硬件接线说明（PIN 映射）
 
-> 目标芯片：**ESP32-S3 N16R8**（16MB Flash + 8MB Octal PSRAM），开发板为 **ESP32-S3 NANO**。
+> 目标芯片：**ESP32-S3 N16R8**（16MB Flash + 8MB Octal PSRAM），开发板为 **ESP32-S3 NANO**（芯璐电子）。
+> ⚠️ 固件分区表（OTA 双分区 + 字库分区）需要 16MB Flash，主控必须用 **N16R8** 版本；8MB Flash 的 R8N8 版本放不下。
+> 整机原理图为嘉立创 EDA 专业版工程「股票盯盘AI助手」（主控 U1 = ESP32-S3 NANO N16R8）。
 > 本文件是硬件接线的唯一说明，固件中的引脚定义见各模块 `.c` 文件顶部 `PIN_*` 宏，两者保持一致。
 > 构建目标：`idf.py set-target esp32s3`。
 >
@@ -45,7 +47,7 @@ LCD 与触摸共用一条 SPI 总线（SPI2）：**T_CLK 与 SCK 连到同一个
 | DC       | 数据/命令    | GPIO17     | `PIN_DC`（也叫 RS/A0）                                     |
 | SDI      | LCD 数据输入 | GPIO48     | `PIN_MOSI`                                                 |
 | SCK      | 时钟         | GPIO18     | `PIN_SCLK`                                                 |
-| LED      | 背光         | GPIO4      | `PIN_BL`，高电平点亮                                       |
+| LED      | 背光         | GPIO4（经 Q3） | `PIN_BL`，高电平点亮；不直接接 LED 脚，经三极管低边驱动，见下方「背光驱动」                                       |
 | SDO      | LCD 数据输出 | 悬空       | 写屏无需读回，可不接                                       |
 | T_CLK    | 触摸时钟     | GPIO18     | 与 SCK 共用 `PIN_SCLK`                                     |
 | T_CS     | 触摸片选     | GPIO9      | `hardware/touch.c` → `TOUCH_PIN_CS`                        |
@@ -87,6 +89,24 @@ T_IRQ  → GPIO15
 >
 > 「系统 → WiFi」页整页为触摸操作：点列表行选择网络 / 点软键盘键输入密码，边缘向内滑返回
 > （配网无 AP 模式，需在设备上手动选择网络并输密码）。
+
+## 背光驱动（三极管低边开关）
+
+屏幕背光电流较大，**GPIO4 不直接接屏幕的 LED 脚**，而是经 NPN 三极管做低边开关
+（原理图器件：Q3 = S8050，R8 = 1K，R9 = 10K）：
+
+```text
+屏幕 LED 脚 ────── Q3 集电极(C)
+
+GPIO4 ── R8(1K) ──┬── Q3 基极(B)
+                  └── R9(10K) ── GND
+
+                  Q3 发射极(E) ── GND
+```
+
+- GPIO4 输出高电平 → Q3 导通 → 背光点亮；低电平 → 熄灭（固件 `PIN_BL` 逻辑不变，仍为高电平点亮）
+- PWM 调光（`display.c` 的 LEDC）经三极管同样有效，亮度 0-100 不受影响
+- R9 为基极下拉电阻：上电时 GPIO4 尚未配置（悬空），保证背光不会误亮
 
 ## 单按键
 

@@ -1,6 +1,6 @@
 # 股票盯盘 AI 助手
 
-带 LCD/TFT 彩屏的股票盯盘设备，基于 **ESP32-S3 N16R8（16MB Flash / 8MB PSRAM）+ ESP-IDF**，内置网页管理界面。
+带 LCD/TFT 彩屏的股票盯盘设备，基于 **ESP32-S3 N16R8 + ESP-IDF**（16MB Flash / 8MB PSRAM；开发板 ESP32-S3 NANO N16R8，固件分区需 16MB Flash），内置网页管理界面。
 
 > **用户提供数据接口 → 系统自动解析数据 → 用户选择需要的数据 → 用户布局屏幕显示 → 设备自动获取并显示**
 
@@ -154,7 +154,7 @@ idf.py -p COMx write_partition --partition-name fonts --partition-offset 0xC1300
 ## 屏幕与画布
 
 - 屏幕：ILI9341 2.4" 240×320 彩屏（SPI + PSRAM 帧缓冲）+ XPT2046 电阻触摸（首次使用需在「系统 → TouchCal」两点标定）。
-  接线见 [firmware/PINMAP.md](firmware/PINMAP.md)。
+  接线见 [firmware/PINMAP.md](firmware/PINMAP.md)；背光由 GPIO4 经三极管（S8050）低边驱动。
 - 顶部 16px 为**状态栏**（系统保留，不参与布局）：左侧时间（SNTP 校时，未同步时显示运行时长），
   右侧信号 4 格 + 电池电量（ADC 分压采样，实时显示，未接电池时约为 0%）。
 - 状态栏下方 **240×304 为可配置画布**（共 72960 像素）。前端「屏幕布局」与固件 `display.h` 共用同一组
