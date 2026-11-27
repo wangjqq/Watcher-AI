@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""gen_manual.py — 从共享手册数据源生成固件端 C 数组（manual_data.h / manual_data.c）。
+"""gen_manual.py — 从手册 JSON 生成 C 数组（manual_data.h / manual_data.c）。
 
-数据源：docs/manual.json（与网页端 web/src/pages/UserManual.tsx 共用同一内容，
-页面端直接 import 该 JSON 渲染）。本脚本在 CMake 配置阶段运行：读取 JSON，
-按设备屏幕 8px 显示宽度折行、分页，生成 C 数组到构建目录，固件直接引用。
+示例输入为 docs/manual.json。脚本按设备屏幕 8px 显示宽度折行和分页。
+当前固件构建未调用此脚本，网页也未读取该 JSON。运行时手册的维护位置见 AGENTS.md。
 
 设备端约定：
   - 每页 MANUAL_LINES 行；
@@ -12,7 +11,6 @@
 
 用法：
     python gen_manual.py <manual.json> <out.c> <out.h>
-由 firmware/main/CMakeLists.txt 在配置阶段调用。
 """
 
 import json

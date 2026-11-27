@@ -11,7 +11,7 @@ import {
 
 const { Title, Paragraph, Text } = Typography
 
-/* 功能变更时请同步更新：设备端 firmware/main/display/app_ui.c 的 s_manual_pages 分页内容。 */
+/* 用户文档的更新范围与设备端手册位置见仓库根目录 AGENTS.md。 */
 const sections = [
   {
     key: 'intro',
