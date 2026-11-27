@@ -14,9 +14,7 @@ fonts.bin 布局（GB2312 区位码索引）：
   2. PIL + 系统字体渲染（Windows 自带宋体/雅黑）
   3. 均不可用：生成全 0 占位并警告（固件可编译，中文显示为方块）
 
-烧录字库分区：
-  python tools/gen_font.py
-  idf.py -p COMx write_partition --partition-name fonts --partition-offset 0xC13000 --input build/fonts.bin
+字库烧录步骤见仓库根目录 README.md 的「中文字库」。
 """
 import os
 import sys
@@ -144,6 +142,4 @@ def build_fonts_bin():
 if __name__ == "__main__":
     build_table()
     build_fonts_bin()
-    print("完成。烧录字库分区：")
-    print("  idf.py -p COMx write_partition --partition-name fonts "
-          "--partition-offset 0xC13000 --input build/fonts.bin")
+    print("完成。字库烧录步骤见根目录 README.md 的「中文字库」。")

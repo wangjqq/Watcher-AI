@@ -55,46 +55,19 @@ GPIO 38  39  40  41  42  45  46  47  48
 
 > 实测可用排针引脚：GPIO1~18、GPIO21、GPIO38~42、GPIO47、GPIO48（避开上表）。
 
-## 四、本项目引脚对照检查（2026-09-03 核对）
+产品接线见 [firmware/PINMAP.md](../../../firmware/PINMAP.md)。
 
-全部引脚均已在排针引出且**不落入禁区**，与开发板相符：
-
-| 外设 | GPIO | 引出 | 可用 | 说明 |
-| ---- | ---- | ---- | ---- | ---- |
-| LCD CS | 5 | ✅ | ✅ | |
-| LCD RST | 16 | ✅ | ✅ | |
-| LCD DC | 17 | ✅ | ✅ | |
-| LCD MOSI | 48 | ✅ | ✅ | 与板载 LED 共用（已说明） |
-| LCD SCLK | 18 | ✅ | ✅ | |
-| LCD BL | 4 | ✅ | ✅ | |
-| 触摸 T_CS | 9 | ✅ | ✅ | |
-| 触摸 T_DO | 11 | ✅ | ✅ | |
-| 触摸 T_IRQ | 15 | ✅ | ✅ | |
-| 旋钮 A | 47 | ✅ | ✅ | |
-| 旋钮 B | 6 | ✅ | ✅ | |
-| 旋钮 SW（深睡唤醒） | 7 | ✅ | ✅ | GPIO7 属 RTC 域，深睡可唤醒 |
-| 返回键 | 14 | ✅ | ✅ | |
-| 蜂鸣器 | 13 | ✅ | ✅ | |
-| RGB R | 38 | ✅ | ✅ | |
-| RGB G | 21 | ✅ | ✅ | |
-| RGB B | 42 | ✅ | ✅ | |
-| BH1750 SDA | 8 | ✅ | ✅ | |
-| BH1750 SCL | 10 | ✅ | ✅ | |
-| 电池 ADC | 1 | ✅ | ✅ | ADC1_CH0 |
-
-**结论：项目所用 20 个 GPIO 全部符合开发板排针引出，无需改动。**
-
-## 五、资料文件清单
+## 四、资料文件清单
 
 | 文件 | 说明 |
 | ---- | ---- |
-| `pinout.jpg` | 引脚定义图（官方，5.9MB） |
-| `dimension.png` | 尺寸图 |
-| `components.jpg` | 元件分布图 |
-| `schematic.pdf` | 原理图（单页，含芯片/排针/电源） |
-| `esp-idf-example/` | 官方 ESP-IDF 例程源码（已清理编译产物，见下） |
+| [pinout.jpg](pinout.jpg) | 引脚定义图（官方，5.9MB） |
+| [dimension.png](dimension.png) | 尺寸图 |
+| [components.jpg](components.jpg) | 元件分布图 |
+| [schematic.pdf](schematic.pdf) | 原理图（单页，含芯片/排针/电源） |
+| [esp-idf-example/](esp-idf-example/) | 官方 ESP-IDF 例程源码（已清理编译产物，见下） |
 
-## 六、ESP-IDF 例程索引（esp-idf-example/03.ESP-IDF/）
+## 五、ESP-IDF 例程索引（esp-idf-example/03.ESP-IDF/）
 
 官方配套例程（编译环境：工程路径不能含中文）：
 
@@ -115,5 +88,4 @@ GPIO 38  39  40  41  42  45  46  47  48
 | 13_bluetooth | 蓝牙 |
 | 14_spi_sd_card | SPI SD 卡 |
 
-> 例程接线与本项目不同（例程只演示对应外设用法），引脚以本项目
-> [firmware/PINMAP.md](../../../firmware/PINMAP.md) 为准。
+> 例程使用各自的接线。

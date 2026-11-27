@@ -5,7 +5,7 @@
 - `firmware/` 是 ESP32-S3 的 ESP-IDF 固件，包含设备 UI、配网、REST API 和配置持久化。硬件接线以 [PINMAP](firmware/PINMAP.md) 为准。
 - `web/` 是 React / TypeScript 管理界面。Vite 构建产物写入 `firmware/web_dist/`，随后嵌入固件。构建步骤见 [README](README.md#构建固件)。
 - `docs/hardware/` 包含硬件资料和厂商示例。定位产品运行逻辑时先看 `firmware/main/` 和 `web/src/`。
-- 当前功能和使用方式见 [README](README.md#使用流程)。[Trae 项目规则](.trae/rules/project_rules.md) 补充产品背景和早期设计。
+- 当前功能和使用方式见 [README](README.md#使用流程)。
 
 ## 定位与修改
 
@@ -32,4 +32,3 @@
 ## 用户文档
 
 - 用户可见功能、操作步骤或入口变化时，更新受影响的网页手册 [UserManual.tsx](web/src/pages/UserManual.tsx) 和设备手册 [app_ui.c 中的 `s_manual_pages`](firmware/main/display/app_ui.c)。项目概览、构建、部署或主要使用流程变化时同步更新 [README](README.md)。纯内部重构按需更新开发说明。
-- 当前运行时手册由上述两个入口维护。`docs/manual.json` 和 `firmware/tools/gen_manual.py` 尚未接入这两个入口。
