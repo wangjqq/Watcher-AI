@@ -228,8 +228,8 @@ static const char *const s_manual_pages[MANUAL_PAGES][MANUAL_LINES] = {
         "Short press to confirm,",
         "long press to go back.",
         "OK/BACK: exit manual",
-        "",
-        "",
+        "SW2 (if fitted): board power",
+        "Charge via TP4056 USB-C",
     },
     {
         "== CONFIG ==",

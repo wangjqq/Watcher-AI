@@ -171,6 +171,11 @@ const sections = [
           充电后自动恢复运行）；<Text strong>未接电池（纯 USB 供电）</Text>时低电量保护不生效，避免误休眠。
         </Paragraph>
         <Paragraph>
+          <Text strong>电源开关：</Text>
+          装有 SW2 的板卡可用拨动开关控制整机供电。关机充电时，请拔掉主控调试 USB 线，将充电线接到 TP4056 模块的
+          USB-C 口，充电状态看模块自带的指示灯。
+        </Paragraph>
+        <Paragraph>
           <Text strong>电量与背光：</Text>
           支持电池电压采集与 PWM 调光，自动亮度由光敏传感器接管。
         </Paragraph>
